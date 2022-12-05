@@ -1,0 +1,123 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+import sys
+import random
+
+wont_change = { ' '  : ' ' , 
+           '\n' : '\n'
+           }
+def fixed_width_replace(char): #f
+    if char in wont_change: return str(char)
+    else: 
+      try:
+        if not 32 < ord(char) < 126: raise Exception("not in range")
+        return chr(0xFF00 + ord(char)-32)
+      except Exception as e:
+        return char
+
+cyrillic_dict = {
+    'A' : 'А', 'a' : 'а','Ä' : 'Ӓ', 'ä' : 'ӓ',
+    'B' : 'В',
+    'c' : 'с',
+    'E' : 'Е',
+    'e' : 'е',
+    'H' : 'Н',
+    'I' : 'І', 'i' : 'і',
+    'j' : 'ј','J' : 'Ј',
+    'K' : 'К',
+    'M' : 'М',
+    'O' : 'О', 'o' : 'о', 'Ö' : 'Ӧ', 'ö' : 'ӧ',
+    'P' : 'Р', 'p' : 'р',
+    'S' : 'Ѕ',
+    'T' : 'г'
+    }
+
+def cyrillic_replace(char): #c
+  return dict_ret(char,cyrillic_dict)
+
+historic_latin_dict = { 
+    'B' : 'Ɓ',
+    'b' : 'ƅ',
+    'u' : 'ư',
+    'U' : 'Ư',
+    ''  : 'Ǟ',
+    #'5' : 'ƽ',
+    'o' : 'ơ',
+    'O' : 'Ơ',
+    '5' : 'Ƽ'
+    }
+def historic_latin(char): #H
+  return dict_ret(char,historic_latin_dict)
+
+punctuation_dict = {
+    '!' : 'ǃ',
+    '\'': '’',
+    '\"': 'ˮ',
+    #'(' : '⟨',
+    #')' : '⟩',
+    ':' : 'ː',
+    ' ' : [' ',
+           ' ',
+           ' ' 
+           ], #'⁠' - word joiner
+    '-' : [
+        '‒', # figure dash
+        '—', # EM Dash
+        '―', # horizontal bar
+        '‐', # Hyphen
+        '⁃' # hyphen bullet
+        ],
+    '_' : '−',
+    '~' : ['⁓', # swung dash
+           '∼', # Äquivalenzrelation
+           '〜', # wave dash
+           'ー' # long dash
+           ]
+    }
+
+def dict_ret(char,d):
+  ret = d.get(char,char)
+  if type(ret) == list:
+      ret = random.choice(ret)
+  return ret
+
+def punctuation(char): #p
+  return dict_ret(char,punctuation_dict)
+
+def helpme():
+  print (f"""usage: {sys.argv[0]} [modes]
+
+modes:
+  c -- cyrillic replace
+  f -- fixed width
+  p -- replace punctuation
+  H -- replace with historic latin chars
+  h -- this message
+""")
+  sys.exit(0)
+
+#parsing happens inside the nested loop
+modes = ''.join(sys.argv[1:])
+# sane defaults if no mode given
+if not modes : modes = "f"
+
+if 'h' in modes: helpme()
+
+for line in sys.stdin:
+  for char in line:
+    for mode in modes:
+      if mode == 'c':
+        char = cyrillic_replace(char)
+      elif mode == 'f':
+        char = fixed_width_replace(char)
+      elif mode == 'H':
+        char = historic_latin(char)
+      elif mode == 'p':
+        char = punctuation(char)
+      else:
+        print (f"unknown mode {mode}")
+        helpme()
+    try:
+        sys.stdout.write(char)
+    except:
+        sys.stdout.write(char.encode("utf-8"))
