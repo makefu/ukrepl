@@ -93,6 +93,7 @@ modes:
   f -- fixed width
   p -- replace punctuation
   H -- replace with historic latin chars
+  z -- add zero-width space before every char
   h -- this message
 """)
   sys.exit(0)
@@ -115,6 +116,8 @@ for line in sys.stdin:
         char = historic_latin(char)
       elif mode == 'p':
         char = punctuation(char)
+      elif mode == 'z':
+        sys.stdout.write("\u200B")
       else:
         print (f"unknown mode {mode}")
         helpme()
