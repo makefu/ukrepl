@@ -94,6 +94,7 @@ modes:
   p -- replace punctuation
   H -- replace with historic latin chars
   z -- add zero-width space before every char
+  l -- revert string and add ltr at the end
   h -- this message
 """)
   sys.exit(0)
@@ -105,23 +106,31 @@ if not modes : modes = "f"
 
 if 'h' in modes: helpme()
 
-for line in sys.stdin:
-  for char in line:
-    for mode in modes:
-      if mode == 'c':
-        char = cyrillic_replace(char)
-      elif mode == 'f':
-        char = fixed_width_replace(char)
-      elif mode == 'H':
-        char = historic_latin(char)
-      elif mode == 'p':
-        char = punctuation(char)
-      elif mode == 'z':
-        sys.stdout.write("\u200B")
-      else:
-        print (f"unknown mode {mode}")
-        helpme()
-    try:
-        sys.stdout.write(char)
-    except:
-        sys.stdout.write(char.encode("utf-8"))
+
+chars = sys.stdin.read()
+
+if "r" in modes:
+    lines = chars.splitlines()
+    reversed_lines = [line[::-1] for line in lines]
+    chars = '\u202E' + '\n\u202E'.join(reversed_lines)  + '\u202E\n'
+
+for char in chars:
+  for mode in modes:
+    if mode == 'c':
+      char = cyrillic_replace(char)
+    elif mode == 'f':
+      char = fixed_width_replace(char)
+    elif mode == 'H':
+      char = historic_latin(char)
+    elif mode == 'p':
+      char = punctuation(char)
+    elif mode == 'z':
+      sys.stdout.write("\u200B")
+    elif mode == "r": pass
+    else:
+      print (f"unknown mode {mode}")
+      helpme()
+  try:
+      sys.stdout.write(char)
+  except:
+      sys.stdout.write(char.encode("utf-8"))
